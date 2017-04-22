@@ -2,11 +2,13 @@
 
 This is ROBOTA's repository for development of our robot for the LARC2017 IEEE Open competition.
 
+## Requirements
 
+ - OpenCV with `cv2` bindings
+ - Numpy
 
 while the vrep files are provided, you may need to change then in order to use the code properly, depending on V-REP version and OS.
 
-##Requirements
 
 remoteApi.so is located at 
 
@@ -16,6 +18,6 @@ And the python api files are located at
 
 `V-REP/programming/remoteApiBindings/python/python`
 
-##Run
+## Run
 
 `python robot.py`
