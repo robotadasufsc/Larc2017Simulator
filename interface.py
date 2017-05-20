@@ -68,13 +68,7 @@ class RobotInterface():
 
     def setup(self):
         if self.clientID != -1:
-            errorCode, handles, intData, floatData, array = vrep.simxGetObjectGroupData(
-                self.clientID,
-                vrep.sim_appobj_object_type,
-                0,
-                vrep.simx_opmode_oneshot_wait)
-            data = dict(zip(array, handles))
-            self.camera = [value for key, value in data.items() if "Vision" in key][0]
-            self.left_wheel = [value for key, value in data.items() if "fl_wheel_joint" in key][0]
-            self.right_wheel = [value for key, value in data.items() if "fr_wheel_joint" in key][0]
+            _, self.camera = vrep.simxGetObjectHandle(self.clientID, "Vision_sensor", vrep.simx_opmode_blocking)
+            _, self.left_wheel = vrep.simxGetObjectHandle(self.clientID, "fl_wheel_joint", vrep.simx_opmode_blocking)
+            _, self.right_wheel = vrep.simxGetObjectHandle(self.clientID, "fr_wheel_joint", vrep.simx_opmode_blocking)
             vrep.simxGetVisionSensorImage(self.clientID, self.camera, 1, vrep.simx_opmode_streaming)
