@@ -59,7 +59,7 @@ class RobotInterface():
         img = None
         while not img:  img = self._read_camera()
         size = img[1][0]
-        img = np.array(img[2], dtype='uint8').reshape((size, size))
+        img = np.flipud(np.array(img[2], dtype='uint8').reshape((size, size)))
 
         return img
 
