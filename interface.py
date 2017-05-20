@@ -63,6 +63,17 @@ class RobotInterface():
 
         return img
 
+    def get_position_from_handle(self, handle):
+        """
+        Return [position, orientation] of handle
+        :param handle:
+        :return:
+        """
+        pos = [[],[]]
+        _, pos[0] = vrep.simxGetObjectPosition(self.clientID, handle, - 1, vrep.simx_opmode_streaming)
+        _, pos[1] = vrep.simxGetObjectOrientation(self.clientID, handle, - 1, vrep.simx_opmode_streaming)
+        return pos
+
     def stop(self):
         vrep.simxStopSimulation(self.clientID, vrep.simx_opmode_oneshot_wait)
 
