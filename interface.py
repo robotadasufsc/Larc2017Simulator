@@ -2,6 +2,35 @@ __author__ = 'will'
 import numpy as np
 from vreptest import vrep
 
+
+class Gripper:
+    """
+    Represents the robot's gripper, responsible for moving it.
+    """
+
+    def __init__(self, clientID):
+        self.clientID = clientID
+        _, self.gripper_camera = vrep.simxGetObjectHandle(clientID, "gripper_cam",
+                                                          vrep.simx_opmode_blocking)
+        _, self.gripper_target = vrep.simxGetObjectHandle(clientID, "gripper_target",
+                                                          vrep.simx_opmode_blocking)
+        _, self.gripper_resting= vrep.simxGetObjectHandle(clientID, "gripper_resting_position",
+                                                          vrep.simx_opmode_blocking)
+
+    def move(self, coords, incremental=True):
+        """
+        Moves the gripper to (left, away, up)
+        :param coords: position to move to(if not incremental) or to increase (if incremental)
+        :param incremental: relative to actual position
+        """
+        if incremental:
+            vrep.simxSetObjectPosition(self.clientID, self.gripper_target, self.gripper_target,
+                                       coords, vrep.simx_opmode_oneshot)
+        else:
+            vrep.simxSetObjectPosition(self.clientID, self.gripper_target, self.gripper_resting,
+                                       coords, vrep.simx_opmode_oneshot)
+
+
 class RobotInterface():
     """
     This is responsible for interfacing with the simulated robot
@@ -20,6 +49,7 @@ class RobotInterface():
         self.left_wheel = None
         self.right_wheel = None
         self.camera = None
+        self.gripper = None
 
         self.setup()
         self.lastimageAcquisitionTime = 0
@@ -83,3 +113,4 @@ class RobotInterface():
             _, self.left_wheel = vrep.simxGetObjectHandle(self.clientID, "fl_wheel_joint", vrep.simx_opmode_blocking)
             _, self.right_wheel = vrep.simxGetObjectHandle(self.clientID, "fr_wheel_joint", vrep.simx_opmode_blocking)
             vrep.simxGetVisionSensorImage(self.clientID, self.camera, 1, vrep.simx_opmode_streaming)
+            self.gripper = Gripper(self.clientID)
