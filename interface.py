@@ -1,7 +1,7 @@
 __author__ = 'will'
 import numpy as np
 from vreptest import vrep
-
+import time
 
 class Gripper:
     """
@@ -41,6 +41,7 @@ class RobotInterface():
         self.clientID = vrep.simxStart("127.0.0.1", 19997, True, True, 5000,5)
 
         vrep.simxStopSimulation(self.clientID, vrep.simx_opmode_oneshot)
+        time.sleep(0.5)
         vrep.simxStartSimulation(self.clientID, vrep.simx_opmode_oneshot)
 
         vrep.simxSynchronous(self.clientID, False)
