@@ -12,6 +12,7 @@ keys = KeyListener()
 
 while True:
     img = interface.get_image_from_camera()
+    print(interface.read_sensors())
 
     try:
         perc, tag_name, tag_image, tag_detec, points = opencvpos.get_position_from_image(img)

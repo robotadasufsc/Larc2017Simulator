@@ -52,6 +52,11 @@ class RobotInterface():
         self.camera = None
         self.gripper = None
 
+        self.proximity = {'fr': None,
+                          'fl': None,
+                          'rr': None,
+                          'rl': None}
+
         self.setup()
         self.lastimageAcquisitionTime = 0
 
@@ -108,10 +113,26 @@ class RobotInterface():
     def stop(self):
         vrep.simxStopSimulation(self.clientID, vrep.simx_opmode_oneshot_wait)
 
+    def read_sensors(self):
+        """
+        Reads all infrared sensors
+        Returns a dictionary: { sensor: (Boll detected, detectedPosition)}
+        """
+        ret = {}
+        for sensor, handle in self.proximity.items():
+            _, detectionState, _, position, _  = vrep.simxReadProximitySensor(self.clientID, handle, vrep.simx_opmode_oneshot_wait)
+            ret[sensor] = (detectionState, position)
+        return ret
+
     def setup(self):
         if self.clientID != -1:
             _, self.camera = vrep.simxGetObjectHandle(self.clientID, "Vision_sensor", vrep.simx_opmode_blocking)
             _, self.left_wheel = vrep.simxGetObjectHandle(self.clientID, "fl_wheel_joint", vrep.simx_opmode_blocking)
             _, self.right_wheel = vrep.simxGetObjectHandle(self.clientID, "fr_wheel_joint", vrep.simx_opmode_blocking)
+
+            for sensor in ['fr','fl','rr','rl']:
+                _, handle = vrep.simxGetObjectHandle(self.clientID, "{0}_proximity".format(sensor), vrep.simx_opmode_blocking)
+                self.proximity[sensor] = handle
+
             vrep.simxGetVisionSensorImage(self.clientID, self.camera, 1, vrep.simx_opmode_streaming)
             self.gripper = Gripper(self.clientID)
