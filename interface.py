@@ -120,7 +120,9 @@ class RobotInterface():
         """
         ret = {}
         for sensor, handle in self.proximity.items():
-            _, detectionState, _, position, _  = vrep.simxReadProximitySensor(self.clientID, handle, vrep.simx_opmode_oneshot_wait)
+            _, detectionState, position, _, _  = vrep.simxReadProximitySensor(self.clientID, handle, vrep.simx_opmode_oneshot_wait)
+            if not detectionState:
+                position = (0, 0, 0)
             ret[sensor] = (detectionState, position)
         return ret
 
