@@ -21,7 +21,7 @@ def load(dataset_dir='./dataset', use_y_as_string=False, verbose=True, test_perc
                 tag_counter[tag_name] = 0
                 x[tag_name] = []
                 y[tag_name] = []
-            X = cv2.imread(os.path.join(root, name))
+            X = cv2.imread(os.path.join(root, name), cv2.IMREAD_GRAYSCALE)
             x[tag_name].append(X)
             if use_y_as_string:
                 y[tag_name].append(tag_name)
