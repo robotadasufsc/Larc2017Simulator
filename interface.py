@@ -2,6 +2,7 @@ __author__ = 'will'
 import numpy as np
 from vreptest import vrep
 import time
+from math import sqrt
 
 class Gripper:
     """
@@ -116,14 +117,15 @@ class RobotInterface():
     def read_sensors(self):
         """
         Reads all infrared sensors
-        Returns a dictionary: { sensor: (Boll detected, detectedPosition)}
+        Returns a dictionary: { sensor: (Bool detected, detectedDistance)}
         """
         ret = {}
         for sensor, handle in self.proximity.items():
             _, detectionState, position, _, _  = vrep.simxReadProximitySensor(self.clientID, handle, vrep.simx_opmode_oneshot_wait)
             if not detectionState:
                 position = (0, 0, 0)
-            ret[sensor] = (detectionState, position)
+            distance = sqrt(sum([coord**2 for coord in position]))
+            ret[sensor] = (detectionState, distance)
         return ret
 
     def setup(self):
