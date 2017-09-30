@@ -16,6 +16,9 @@ class OpencvPos():
         # matrix vector
         self.matrix_size = 40
         self.mats = [self.create_mat_from_tag(tag, self.matrix_size) for tag in self.tags]
+        # camera fov
+        self.camera_fov = 60 # degrees
+
 
         self.errors = [[100,0] for i in self.tags]
         self.goods = [0 for i in self.tags]
@@ -215,4 +218,17 @@ class OpencvPos():
         print(bestPerc, self.tags_name[bestId])
         '''
 
-        return (bestPerc, self.tags_name[bestId], self.mats[bestId], bestWarp, bestTagCnt)
+        tag_name = self.tags_name[bestId]
+        image_size = img.shape
+        image_center = np.divide(image_size,2)
+        points = bestTagCnt
+        tag_center = np.average(points, axis=0)
+        tag_angle = (tag_center - image_center)*self.camera_fov/image_size
+
+        tag_shape = (np.max(points, axis=0) - np.min(points, axis=0))[0]
+
+        tag_angular_size = np.radians(tag_shape*self.camera_fov/image_size/2)
+
+        tag_guesstimated_distance = 10/np.tan(tag_angular_size) # using qrcode size / 2
+
+        return bestPerc, tag_name, self.mats[bestId], bestWarp, bestTagCnt, tag_angle, tag_guesstimated_distance
