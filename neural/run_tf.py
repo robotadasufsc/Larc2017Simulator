@@ -24,7 +24,7 @@ with tf.Session() as session:
         tf.logging.set_verbosity(tf.logging.INFO)
         # Create our classifier
         feature_columns = [tf.contrib.layers.real_valued_column("", dimension=1024)]
-        classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=[400, 400, 400, 400, 400, 400], n_classes=4, model_dir="model")
+        classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=[], n_classes=4, model_dir="model")
         if args.train:
             print('Training...')
             classifier.fit(X_train, y_train, steps=2000)
