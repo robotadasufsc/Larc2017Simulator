@@ -3,6 +3,17 @@ from interface import RobotInterface
 from input.keylistener import KeyListener
 from opencvpos import OpencvPos
 
+
+def paint_tag(img, tag_image, tag_detec):
+    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    cv2.polylines(img, [points], True, (0, 255, 255))
+    tag_image = cv2.cvtColor(tag_image, cv2.COLOR_GRAY2RGB)
+    tag_detec = cv2.cvtColor(tag_detec, cv2.COLOR_GRAY2RGB)
+    img[0:tag_image.shape[1], img.shape[0] - tag_image.shape[0]:img.shape[0]] = tag_image
+    img[tag_image.shape[1]:tag_image.shape[1] + tag_detec.shape[1],
+    img.shape[0] - tag_image.shape[0]:img.shape[0]] = tag_detec
+    return img
+
 interface = RobotInterface()
 opencvpos = OpencvPos()
 
@@ -16,12 +27,8 @@ while True:
 
     try:
         perc, tag_name, tag_image, tag_detec, points, tag_angle, tag_distance = opencvpos.get_position_from_image(img)
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        cv2.polylines(img,[points], True, (0,255,255))
-        tag_image = cv2.cvtColor(tag_image, cv2.COLOR_GRAY2RGB)
-        tag_detec = cv2.cvtColor(tag_detec, cv2.COLOR_GRAY2RGB)
-        img[0:tag_image.shape[1], img.shape[0]-tag_image.shape[0]:img.shape[0]] = tag_image
-        img[tag_image.shape[1]:tag_image.shape[1] + tag_detec.shape[1], img.shape[0]-tag_image.shape[0]:img.shape[0]] = tag_detec
+        img = paint_tag(img, tag_image, tag_detec)
+        print(tag_angle, tag_distance)
 
     except Exception as e:
         print('Error in opencvpos!', e)
