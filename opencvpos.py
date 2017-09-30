@@ -231,4 +231,4 @@ class OpencvPos():
 
         tag_guesstimated_distance = 10/np.tan(tag_angular_size) # using qrcode size / 2
 
-        return bestPerc, tag_name, self.mats[bestId], bestWarp, bestTagCnt, tag_angle, tag_guesstimated_distance
+        return bestPerc, tag_name, self.mats[bestId], bestWarp, bestTagCnt, tag_angle[0], tag_guesstimated_distance
