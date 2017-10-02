@@ -23,7 +23,7 @@ with tf.Session() as session:
         # Enable logging
         tf.logging.set_verbosity(tf.logging.INFO)
         # Create our classifier
-        feature_columns = [tf.contrib.layers.real_valued_column("", dimension=1024)]
+        feature_columns = [tf.contrib.layers.real_valued_column("", dimension=1600)]
         classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=[], n_classes=4, model_dir="model")
         if args.train:
             print('Training...')
