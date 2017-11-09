@@ -106,7 +106,7 @@ class RobotInterface():
         :param handle:
         :return:
         """
-        pos = [[],[]]
+        pos = [[], []]
         _, pos[0] = vrep.simxGetObjectPosition(self.clientID, handle, - 1, vrep.simx_opmode_streaming)
         _, pos[1] = vrep.simxGetObjectOrientation(self.clientID, handle, - 1, vrep.simx_opmode_streaming)
         return pos

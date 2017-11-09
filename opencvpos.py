@@ -3,7 +3,7 @@ __author__ = 'Patrick'
 
 import numpy as np
 import cv2
-
+import tensorflow as tf
 class OpencvPos():
     """
     Black magic of infinity opencv skils and food with lactose
@@ -27,6 +27,12 @@ class OpencvPos():
         print('tags_name', self.tags_name)
         print('tags', self.tags)
         print('mats', self.mats)
+
+
+
+        self.session = tf.Session()
+
+
 
     def create_mat_from_tag(self, img, size):
         # Create a matrix to compare with our candidate
@@ -52,6 +58,28 @@ class OpencvPos():
             perc_total += rows_perc[0][i]*rows_perc[1][i]*(1-np.abs(np.sum(ori[i] - img[i]))/np.sum(ori[i]))
         return perc_total
 
+    def calc_img_eq_perc_neural(self, warp):
+
+            # Run the initializer
+            #print("warp:", warp.shape)
+            #print(warp)
+
+            with tf.device('/gpu:0'):
+                # Enable logging
+                tf.logging.set_verbosity(tf.logging.INFO)
+                # Create our classifier
+                feature_columns = [tf.contrib.layers.real_valued_column("", dimension=1600)]
+                classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
+                                                            hidden_units=[], n_classes=4,
+                                                            model_dir="neural/model")
+                tag_classes = ['AR', 'L', 'Y', None]
+                tag_index = classifier.predict_classes(warp.reshape(1, 40, 40), as_iterable=False)[0]
+                tag_index_prob = classifier.predict_proba(warp.reshape(1, 40, 40), as_iterable=False)[0]
+                print("prediction:", tag_classes[tag_index])
+                print("probability:", tag_index_prob)
+                return tag_index
+
+
     def get_position_from_image(self, img):
         # Get the grayscale image and find some edges
         gray = img.copy()
@@ -59,7 +87,8 @@ class OpencvPos():
 
         # Keep only the most largest edges
         _, cnts, _ = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        cnts = sorted(cnts, key = cv2.contourArea, reverse = True)
+        cnts = [cv2.approxPolyDP(cnt, 3, True) for cnt in cnts]
+        cnts = sorted(cnts, key = cv2.contourArea, reverse=True)
 
         tagCntVec = []
         # loop over our contours
@@ -85,6 +114,7 @@ class OpencvPos():
 
         # We have our candidates to be the best tag detection
         # time to choose a winner
+        found_tags = []
         for tagCnt in tagCntVec:
             # resize
             pts = tagCnt.reshape(4, 2)
@@ -94,6 +124,12 @@ class OpencvPos():
 
             # the top-left point has the smallest sum whereas the
             # bottom-right has the largest sum
+
+            #   [0] -------[1]
+            #    |          |
+            #    |          |
+            #   [3]--------[2]
+
             s = pts.sum(axis = 1)
             rect[0] = pts[np.argmin(s)]
             rect[2] = pts[np.argmax(s)]
@@ -178,36 +214,45 @@ class OpencvPos():
                 euler_angles = euler_angles.squeeze()
 
             # Remove some noise
-            warp = cv2.resize(warp,(40, 40))
+            warp = cv2.resize(warp, (40, 40))
             _, warp = cv2.threshold(warp, 127, 255, cv2.THRESH_BINARY)
             ## We can now compare
-            perc = [0 for i in self.tags]
-            lperc = 0
-            ident = -1
-            for i , _ in enumerate(self.tags):
-                p = self.calc_img_eq_perc(self.mats[i], warp)
-                if p == float('nan') or p == 0:
-                    continue
-                perc[i] = p*100.0
-                if (self.errors[i][0] > perc[i]):
-                    self.errors[i][0] = perc[i]
-                if (self.errors[i][1] < perc[i]):
-                    self.errors[i][1] = perc[i]
-                if perc[i] > lperc:
-                    lperc = perc[i]
-                    ident = i
-                    #print(lperc, self.tags_name[ident])
+            #perc = [0 for i in self.tags]
+            #lperc = 0
+            #ident = -1
 
-            if ident != -1:
-                self.goods[ident] += 1
-            else:
-                self.goods[-1] += 1
 
-            if bestPerc < lperc:
-                bestPerc = lperc
-                bestId = ident
-                bestTagCnt = tagCnt
-                bestWarp = warp
+            #for i , _ in enumerate(self.tags):
+            #    p = self.calc_img_eq_perc(self.mats[i], warp)
+            #    self.calc_img_eq_perc_neural(warp)
+            #    if p == float('nan') or p == 0:
+            ##        continue
+            #    perc[i] = p*100.0
+            #    if (self.errors[i][0] > perc[i]):
+            #        self.errors[i][0] = perc[i]
+            #    if (self.errors[i][1] < perc[i]):
+            #        self.errors[i][1] = perc[i]
+            #    if perc[i] > lperc:
+            #        lperc = perc[i]
+            #        ident = i
+            #        #print(lperc, self.tags_name[ident])
+
+            bestId = self.calc_img_eq_perc_neural(warp)
+            print(bestId)
+            bestTagCnt = tagCnt
+
+            # if ident != -1:
+            #     self.goods[ident] += 1
+            # else:
+            #     self.goods[-1] += 1
+            #
+            # if bestPerc < lperc:
+            #     bestPerc = lperc
+            #     bestId = ident
+            #bestTagCnt = tagCnt
+            bestWarp = warp
+            if bestId != 3:
+                found_tags.append((bestId, bestTagCnt, bestWarp))
 
         #Debug code
         # print percentage between mismatches and nondetect tags
@@ -218,10 +263,12 @@ class OpencvPos():
         print(bestPerc, self.tags_name[bestId])
         '''
 
-        tag_name = self.tags_name[bestId]
+        print("tags: ", len(found_tags))
+        tag_name = self.tags_name[bestId-2]
         image_size = img.shape
-        image_center = np.divide(image_size,2)
+        image_center = np.divide(image_size, 2)
         points = bestTagCnt
+        #print(points)
         tag_center = np.average(points, axis=0)
         tag_angle = (tag_center - image_center)*self.camera_fov/image_size
 
@@ -231,4 +278,4 @@ class OpencvPos():
 
         tag_guesstimated_distance = 10/np.tan(tag_angular_size) # using qrcode size / 2
 
-        return bestPerc, tag_name, self.mats[bestId], bestWarp, bestTagCnt, tag_angle[0], tag_guesstimated_distance
+        return bestPerc, tag_name, self.mats[bestId-2], bestWarp, bestTagCnt, tag_angle[0], tag_guesstimated_distance

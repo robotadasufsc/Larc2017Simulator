@@ -3,6 +3,7 @@ from interface import RobotInterface
 from input.keylistener import KeyListener
 from opencvpos import OpencvPos
 from navigator import Navigator
+import sys
 
 def paint_tag(img, tag_image, tag_detec):
     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
@@ -29,13 +30,16 @@ while True:
     tag_angle = None
     tag_distance = None
     tag_name = None
+    tag_image = None
     try:
         perc, tag_name, tag_image, tag_detec, points, tag_angle, tag_distance = opencvpos.get_position_from_image(img)
         img = paint_tag(img, tag_image, tag_detec)
         print(tag_angle, tag_distance)
 
     except Exception as e:
+        import traceback
         print('Error in opencvpos!', e)
+        traceback.print_exc(file=sys.stdout)
         pass
 
     cv2.imshow("target", img)
@@ -66,7 +70,7 @@ while True:
 
         interface.gripper.move((0, 0, -0.001), False)
     else:
-        navigator.iterate(tag_name, tag_angle, tag_distance, sensors)
+        navigator.iterate(tag_name, tag_angle, tag_distance, sensors, tag_image)
 
 interface.stop()
 cv2.destroyAllWindows()
