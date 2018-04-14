@@ -106,7 +106,7 @@ class RobotInterface():
         :param handle:
         :return:
         """
-        pos = [[],[]]
+        pos = [[], []]
         _, pos[0] = vrep.simxGetObjectPosition(self.clientID, handle, - 1, vrep.simx_opmode_streaming)
         _, pos[1] = vrep.simxGetObjectOrientation(self.clientID, handle, - 1, vrep.simx_opmode_streaming)
         return pos
@@ -121,7 +121,7 @@ class RobotInterface():
         """
         ret = {}
         for sensor, handle in self.proximity.items():
-            _, detectionState, position, _, _  = vrep.simxReadProximitySensor(self.clientID, handle, vrep.simx_opmode_oneshot_wait)
+            _, detectionState, position, _, _  = vrep.simxReadProximitySensor(self.clientID, handle, vrep.simx_opmode_streaming)
             if not detectionState:
                 position = (0, 0, 0)
             distance = sqrt(sum([coord**2 for coord in position]))

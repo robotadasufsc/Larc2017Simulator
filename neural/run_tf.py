@@ -23,16 +23,17 @@ with tf.Session() as session:
         # Enable logging
         tf.logging.set_verbosity(tf.logging.INFO)
         # Create our classifier
-        feature_columns = [tf.contrib.layers.real_valued_column("", dimension=1024)]
-        classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=[400, 400, 400, 400, 400, 400], n_classes=4, model_dir="model")
+        feature_columns = [tf.contrib.layers.real_valued_column("", dimension=1600)]
+        classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=[], n_classes=4, model_dir="model")
         if args.train:
             print('Training...')
-            classifier.fit(X_train, y_train, steps=2000)
+            classifier.fit(X_train, y_train, steps=5000)
             print('Done !')
 
         # Evaluate
         test_count = 0
         error_count = 0
+        print(X_test.shape)
         for i in zip(classifier.predict_proba(X_test), classifier.predict_classes(X_test), classifier.predict(X_test)):
             print("model.predict_proba", "--", i[0], "model.predict", "--",
                   i[2], "predict_clases", "--", i[1])
